@@ -1,632 +1,599 @@
-import { useState, useEffect, useRef } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#080c14"/>
+<meta name="description" content="Honest, expert reviews of the latest tech, gadgets, gaming gear, smart home devices and more. AI-updated affiliate reviews."/>
+<title>TechPulse Reviews – Expert Product Reviews</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#080c14;--surface:#0e1520;--card:#0f1923;--border:#1c2a40;--text:#e8f0fe;--muted:#4a6080;--accent:#00d4ff;--accent2:#7c3aed;--green:#00e5a0;--red:#ff4d6d;--gold:#ffc327}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,212,255,0.06),transparent),radial-gradient(ellipse 60% 40% at 80% 90%,rgba(124,58,237,0.05),transparent);pointer-events:none;z-index:0}
+nav{position:sticky;top:0;z-index:200;background:rgba(8,12,20,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 clamp(14px,4vw,48px)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px;gap:10px}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.logo-text{font-family:'Syne',sans-serif;font-size:17px;font-weight:900;color:var(--text)}
+.logo-text span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:8px}
+#searchInput{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 12px;color:var(--text);font-size:12px;width:clamp(80px,18vw,180px);outline:none;font-family:'DM Sans',sans-serif}
+#searchInput::placeholder{color:var(--muted)}
+.btn-agent{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:7px;padding:8px 14px;cursor:pointer;font-weight:700;font-size:12px;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.hero{padding:60px clamp(14px,4vw,48px) 48px;text-align:center;position:relative;z-index:1}
+.hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:99px;padding:5px 16px;margin-bottom:20px}
+.hero-pill-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 2s infinite}
+.hero-pill span{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+h1{font-family:'Syne',sans-serif;font-size:clamp(28px,5vw,54px);font-weight:900;line-height:1.05;letter-spacing:-1px;margin:0 0 14px;color:var(--text)}
+.grad{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--muted);font-size:clamp(13px,2vw,16px);max-width:480px;margin:0 auto 28px;line-height:1.6;font-weight:300}
+.hero-stats{display:flex;justify-content:center;gap:28px;flex-wrap:wrap}
+.hero-stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:900;color:var(--accent)}
+.hero-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.filters{padding:0 clamp(14px,4vw,48px) 18px;position:relative;z-index:1}
+.filters-inner{max-width:1200px;margin:0 auto;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.cat-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:6px 13px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s}
+.cat-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.count{margin-left:auto;color:var(--muted);font-size:12px}
+.grid-wrap{padding:0 clamp(14px,4vw,48px) 60px;position:relative;z-index:1}
+.grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.empty{grid-column:1/-1;text-align:center;padding:60px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all 0.22s;animation:fadeUp 0.4s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.card:hover{transform:translateY(-5px);box-shadow:0 20px 40px rgba(0,0,0,0.4);border-color:rgba(0,212,255,0.25)}
+.card-img{background:linear-gradient(160deg,#0a1520,#0f1923);padding:20px;display:flex;gap:14px;align-items:flex-start;border-bottom:1px solid var(--border);position:relative}
+.card-img img{width:72px;height:72px;object-fit:contain;border-radius:10px;background:var(--surface)}
+.card-img-fallback{width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:32px;border-radius:10px}
+.card-badge{font-size:9px;font-weight:800;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.8px}
+.card-niche{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px}
+.card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:900;color:var(--text);margin:0 0 6px;line-height:1.2}
+.card-rating{display:flex;align-items:center;gap:7px}
+.card-stars{color:var(--gold);font-size:12px;letter-spacing:1px}
+.card-score{font-family:'Syne',sans-serif;font-size:13px;font-weight:900;color:var(--gold)}
+.card-price{color:var(--green);font-weight:800;font-size:13px;margin-left:auto}
+.card-body{padding:14px 18px 16px}
+.card-excerpt{color:#64748b;font-size:13px;line-height:1.65;margin:0 0 12px;font-style:italic}
+.card-footer{display:flex;justify-content:space-between;align-items:center}
+.card-cta{color:var(--accent);font-size:12px;font-weight:600}
+.card-ag{font-size:9px;color:#a78bfa;font-family:monospace;font-weight:700}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px)}
+.overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;width:min(680px,100%);max-height:90vh;overflow-y:auto}
+.modal-header{background:linear-gradient(160deg,#080c14,#0e1520);padding:28px 28px 22px;border-radius:20px 20px 0 0;border-bottom:1px solid var(--border)}
+.modal-img-row{display:flex;gap:16px;align-items:flex-start}
+.modal-img{width:100px;height:100px;object-fit:contain;border-radius:12px;background:var(--surface)}
+.modal-img-fallback{width:100px;height:100px;display:flex;align-items:center;justify-content:center;font-size:48px;border-radius:12px}
+.modal-badges{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.modal-title{font-family:'Syne',sans-serif;font-size:clamp(18px,3vw,24px);font-weight:900;color:var(--text);margin:0 0 8px;line-height:1.2}
+.modal-rating{display:flex;align-items:center;gap:10px}
+.modal-stars{color:var(--gold);font-size:15px;letter-spacing:2px}
+.modal-score{font-family:'Syne',sans-serif;font-size:17px;font-weight:900;color:var(--gold)}
+.modal-price{color:var(--green);font-weight:800;font-size:16px}
+.modal-body{padding:22px 28px}
+.section-label{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-label::before{content:'';width:20px;height:2px;display:inline-block}
+.review-section{margin-bottom:20px}
+.experience-text{color:#94a3b8;font-size:15px;line-height:1.75;font-style:italic;border-left:3px solid var(--accent);padding-left:14px}
+.works-box{background:rgba(0,229,160,0.04);border:1px solid rgba(0,229,160,0.12);border-radius:12px;padding:16px 18px}
+.needs-box{background:rgba(255,77,109,0.04);border:1px solid rgba(255,77,109,0.12);border-radius:12px;padding:16px 18px}
+.verdict-box{background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(124,58,237,0.06));border:1px solid rgba(0,212,255,0.15);border-radius:12px;padding:16px 18px}
+.review-text{color:#cbd5e1;font-size:14px;line-height:1.7;margin:0}
+.verdict-text{color:var(--text);font-size:15px;line-height:1.65;font-weight:600;margin:0}
+.btn-buy{display:block;background:linear-gradient(135deg,var(--gold),#ff9500);color:#000;text-align:center;padding:15px 24px;border-radius:12px;font-weight:800;font-size:15px;text-decoration:none;font-family:'Syne',sans-serif;margin-bottom:8px}
+.affiliate-notice{color:#1c2a40;font-size:11px;text-align:center;margin-bottom:14px}
+.btn-close{display:block;margin:0 auto;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:7px 22px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif}
 
-const AFFILIATE_TAG = "shuebird04-20";
-const AGENT_PASSWORD = "TechPulse2025";
-const ANTIGRAVITY_KEY = "antigravity-published";
+/* LOGIN */
+.login-panel{background:var(--bg);border:1px solid var(--border);border-radius:16px;width:min(360px,95vw);overflow:hidden}
+.login-header{background:linear-gradient(135deg,var(--bg),var(--surface));padding:28px 28px 20px;text-align:center;border-bottom:1px solid var(--border)}
+.login-icon{width:50px;height:50px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.login-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:900;color:var(--text);margin-bottom:4px}
+.login-sub{color:var(--muted);font-size:12px}
+.login-body{padding:20px 24px}
+.login-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;font-family:'DM Sans',sans-serif;margin-bottom:8px}
+.login-err{color:var(--red);font-size:11px;margin-bottom:8px;text-align:center;min-height:16px}
+.btn-unlock{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;padding:11px;cursor:pointer;font-weight:800;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:8px}
+.btn-cancel{width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif}
 
-const NICHES = [
-  { id: "tech", label: "Tech & Gadgets", icon: "⚡", color: "#00d4ff" },
-  { id: "health", label: "Health & Wellness", icon: "💊", color: "#00e5a0" },
-  { id: "finance", label: "Finance & Investing", icon: "💰", color: "#ffc327" },
-  { id: "home", label: "Smart Home", icon: "🏠", color: "#7c3aed" },
-  { id: "beauty", label: "Beauty & Skincare", icon: "✨", color: "#ff6b9d" },
-  { id: "fitness", label: "Fitness & Sports", icon: "🏋️", color: "#ff4d6d" },
-  { id: "pets", label: "Pets & Animals", icon: "🐾", color: "#fb923c" },
-  { id: "gaming", label: "Gaming", icon: "🎮", color: "#a855f7" },
-  { id: "travel", label: "Travel & Outdoors", icon: "✈️", color: "#06b6d4" },
-  { id: "food", label: "Food & Kitchen", icon: "🍳", color: "#84cc16" },
-];
+/* AGENT */
+.agent-panel{background:var(--bg);border:1px solid var(--border);border-radius:18px;width:min(700px,96vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.agent-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--bg),var(--surface))}
+.agent-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:8px}
+.agent-tabs{display:flex;border-bottom:1px solid var(--border)}
+.agent-tab{flex:1;padding:10px 0;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s}
+.agent-tab.active{background:var(--surface);color:var(--text);border-bottom-color:var(--accent);font-weight:700}
+.agent-body{overflow-y:auto;flex:1;padding:20px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:900;color:var(--text)}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-top:2px}
+.task-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.task-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.task-btn:hover:not(:disabled){border-color:var(--accent)}
+.task-btn:disabled{opacity:0.4;cursor:not-allowed}
+.task-name{color:var(--text);font-weight:700;font-size:13px;margin-bottom:3px}
+.task-desc{color:var(--muted);font-size:11px;line-height:1.4}
+.review-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:10px}
+.review-row-info{display:flex;align-items:center;gap:8px;min-width:0}
+.review-row-name{color:var(--text);font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.review-row-meta{color:var(--muted);font-size:10px;margin-top:1px}
+.btn-refresh{background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.2);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all 0.15s}
+.btn-refresh:disabled{opacity:0.4;cursor:not-allowed}
+.gen-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+.gen-desc{color:var(--muted);font-size:12px;line-height:1.6;margin-bottom:12px}
+.gen-row{display:flex;gap:8px;margin-bottom:10px}
+.gen-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:'DM Sans',sans-serif}
+.gen-input::placeholder{color:var(--muted)}
+.btn-gen{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:7px;padding:9px 16px;cursor:pointer;font-weight:800;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.btn-gen:disabled{opacity:0.4;cursor:not-allowed}
+.niche-pills{display:flex;flex-wrap:wrap;gap:6px}
+.niche-pill{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;color:var(--muted);font-size:11px;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.terminal{background:#020408;border:1px solid var(--border);border-radius:10px;padding:16px;min-height:240px;max-height:360px;overflow-y:auto;font-family:'Courier New',monospace;font-size:12px;color:#94a3b8;line-height:1.7;white-space:pre-wrap}
+.terminal-placeholder{color:#1c2a40}
+.terminal-cursor{color:var(--green);animation:blink 1s infinite}
+.log-entry{background:var(--surface);border-radius:7px;padding:9px 12px;display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.log-time{color:var(--muted);font-size:10px;font-family:monospace;white-space:nowrap}
+.log-action{color:var(--text);font-size:12px;flex:1}
+.log-status{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap}
+footer{border-top:1px solid var(--border);padding:24px clamp(14px,4vw,48px);text-align:center;position:relative;z-index:1}
+footer p{color:#1c2a40;font-size:11px;line-height:1.8}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.modal-img-row{flex-direction:column;align-items:center;text-align:center}.stat-grid{grid-template-columns:1fr 1fr}.task-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
 
-const SEED_REVIEWS = [
-  { id: 1, title: "Apple MacBook Pro M4", niche: "tech", rating: 9.4, price: "$1,999", asin: "B0CM5JV268", badge: "Editor's Choice", badgeColor: "#ffc327", excerpt: "The M4 chip redefines what a laptop can do. Unmatched performance meets all-day battery life.", pros: ["Blazing M4 performance", "18-hour battery", "Stunning Retina XDR"], cons: ["Premium price", "Limited ports"], seoDesc: "Full MacBook Pro M4 review — benchmarks, battery life, display quality and verdict.", affiliate: `https://amazon.com/s?k=macbook+pro+m4&tag=${AFFILIATE_TAG}`, date: "2025-04-01", views: 18420, clicks: 3210, source: "seed" },
-  { id: 2, title: "Samsung Galaxy S25 Ultra", niche: "tech", rating: 9.1, price: "$1,299", asin: "B0CMDWC436", badge: "Best Android", badgeColor: "#3b82f6", excerpt: "Samsung's flagship pushes AI photography and display tech to the absolute limit.", pros: ["200MP camera", "Snapdragon 8 Elite", "S Pen included"], cons: ["Bulky", "Slow charging"], seoDesc: "Samsung Galaxy S25 Ultra review — camera, gaming, battery and Galaxy AI tested.", affiliate: `https://amazon.com/s?k=galaxy+s25+ultra&tag=${AFFILIATE_TAG}`, date: "2025-03-28", views: 14300, clicks: 2870, source: "seed" },
-  { id: 3, title: "Sony WH-1000XM6", niche: "tech", rating: 9.6, price: "$349", asin: "B0CXJ3QXPB", badge: "Top Pick", badgeColor: "#00e5a0", excerpt: "The best noise-cancelling headphones money can buy. Period.", pros: ["Industry-leading ANC", "30hr battery", "Crystal-clear calls"], cons: ["Subtle refresh", "Finicky touch controls"], seoDesc: "Sony WH-1000XM6 review — is it worth upgrading from XM5? Full verdict inside.", affiliate: `https://amazon.com/s?k=sony+wh1000xm6&tag=${AFFILIATE_TAG}`, date: "2025-04-02", views: 22100, clicks: 4560, source: "seed" },
-  { id: 4, title: "Nvidia RTX 5090", niche: "gaming", rating: 9.7, price: "$1,999", asin: "B0CNXG4FVP", badge: "Flagship GPU", badgeColor: "#ff4d6d", excerpt: "The RTX 5090 is an absolute monster — 4K maxed out, DLSS 4 is borderline black magic.", pros: ["Fastest GPU ever", "DLSS 4 multi-frame", "8K capable"], cons: ["$1,999 price", "Massive power draw"], seoDesc: "RTX 5090 benchmark results, gaming performance, and verdict vs RTX 5080.", affiliate: `https://amazon.com/s?k=nvidia+rtx+5090&tag=${AFFILIATE_TAG}`, date: "2025-04-03", views: 31000, clicks: 5100, source: "seed" },
-  { id: 5, title: "Dyson V15 Detect", niche: "home", rating: 8.8, price: "$749", asin: "B09GJKFFXS", badge: "Best Vacuum", badgeColor: "#06b6d4", excerpt: "Dyson's laser-powered V15 literally shows you the dust you're missing. Overkill in the best way.", pros: ["Laser dust detection", "75-min runtime", "HEPA filtration"], cons: ["Very expensive", "Heavy"], seoDesc: "Dyson V15 Detect review — suction, battery, laser detection and vs V12 compared.", affiliate: `https://amazon.com/s?k=dyson+v15+detect&tag=${AFFILIATE_TAG}`, date: "2025-03-20", views: 7600, clicks: 980, source: "seed" },
-];
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">TechPulse<span>Reviews</span></div>
+    </a>
+    <div class="nav-right">
+      <input type="text" id="searchInput" placeholder="Search reviews…" oninput="renderGrid()"/>
+      <button class="btn-agent" onclick="openLogin()">🤖 Agent</button>
+    </div>
+  </div>
+</nav>
 
-const AGENT_LOG_SEED = [
-  { time: "04/03 09:14", action: "RTX 5090 review refreshed with new benchmark data", status: "success" },
-  { time: "04/02 11:32", action: "Antigravity sync — products imported", status: "success" },
-  { time: "04/01 08:00", action: "Keyword strategy generated for 10 niches", status: "success" },
-];
+<section class="hero">
+  <div class="hero-pill"><div class="hero-pill-dot"></div><span>AI-Powered · Real Reviews · 10 Niches</span></div>
+  <h1>Reviews People<br><span class="grad">Actually Trust</span></h1>
+  <p>Honest, narrative-style reviews across tech, gaming, home, health, fitness and more — written like a real person, not a spec sheet.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-val" id="statCount">3</div><div class="hero-stat-label">Reviews</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">10</div><div class="hero-stat-label">Niches</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">Real</div><div class="hero-stat-label">Experiences</div></div>
+  </div>
+</section>
 
-// ── Amazon Image Component ────────────────────────────────────────────────────
-function AmazonImage({ asin, title, niche, size = 80 }) {
-  const [imgSrc, setImgSrc] = useState(null);
-  const [failed, setFailed] = useState(false);
-  const nicheInfo = NICHES.find(n => n.id === niche) || NICHES[0];
+<div class="filters">
+  <div class="filters-inner" id="filterBar">
+    <button class="cat-btn active" onclick="setNiche('All',this)">All</button>
+    <button class="cat-btn" onclick="setNiche('tech',this)">⚡ Tech</button>
+    <button class="cat-btn" onclick="setNiche('gaming',this)">🎮 Gaming</button>
+    <button class="cat-btn" onclick="setNiche('home',this)">🏠 Home</button>
+    <button class="cat-btn" onclick="setNiche('health',this)">💊 Health</button>
+    <button class="cat-btn" onclick="setNiche('fitness',this)">🏋️ Fitness</button>
+    <button class="cat-btn" onclick="setNiche('beauty',this)">✨ Beauty</button>
+    <button class="cat-btn" onclick="setNiche('pets',this)">🐾 Pets</button>
+    <button class="cat-btn" onclick="setNiche('travel',this)">✈️ Travel</button>
+    <button class="cat-btn" onclick="setNiche('food',this)">🍳 Food</button>
+    <button class="cat-btn" onclick="setNiche('finance',this)">💰 Finance</button>
+    <span class="count" id="countBadge">3 reviews</span>
+  </div>
+</div>
 
-  useEffect(() => {
-    if (!asin || asin.startsWith("B0XXXXX")) { setFailed(true); return; }
-    // Amazon CDN image URL pattern
-    const url = `https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=${asin}&Format=_SL${size}_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=${AFFILIATE_TAG}`;
-    setImgSrc(url);
-  }, [asin, size]);
+<div class="grid-wrap">
+  <div class="grid" id="reviewGrid"></div>
+</div>
 
-  if (failed || !asin) {
-    return (
-      <div style={{ width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.5, background: `${nicheInfo.color}15`, borderRadius: 8 }}>
-        {nicheInfo.icon}
+<footer>
+  <p>© 2025 TechPulse Reviews · tech-pulse-reviews.com · Amazon tag: shuebird04-20<br>
+  Affiliate Disclosure: We earn commissions from qualifying Amazon purchases at no extra cost to you.<br>
+  Reviews AI-assisted and continuously updated for accuracy.</p>
+</footer>
+
+<!-- REVIEW MODAL -->
+<div class="overlay" id="reviewOverlay" onclick="closeReview(event)">
+  <div class="modal" id="reviewModal"></div>
+</div>
+
+<!-- LOGIN OVERLAY -->
+<div class="overlay" id="loginOverlay">
+  <div class="login-panel">
+    <div class="login-header">
+      <div class="login-icon">🔒</div>
+      <div class="login-title">Agent Access</div>
+      <div class="login-sub">Enter your password to continue</div>
+    </div>
+    <div class="login-body">
+      <input type="password" id="pwInput" class="login-input" placeholder="Password…" onkeydown="if(event.key==='Enter')checkPw()"/>
+      <div class="login-err" id="pwErr"></div>
+      <button class="btn-unlock" onclick="checkPw()">Unlock Agent →</button>
+      <button class="btn-cancel" onclick="closeLogin()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT OVERLAY -->
+<div class="overlay" id="agentOverlay">
+  <div class="agent-panel">
+    <div class="agent-header">
+      <div class="agent-title">🤖 AI Agent <span id="agentStatusBadge" style="background:#1c2a40;color:#4a6080;font-size:10px;padding:2px 10px;border-radius:99px;font-weight:800;font-family:'DM Sans',sans-serif">○ IDLE</span></div>
+      <div style="display:flex;gap:7px">
+        <button onclick="handleSync()" style="background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.2);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">⚡ Sync</button>
+        <button onclick="closeAgent()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">✕</button>
       </div>
-    );
+    </div>
+    <div class="agent-tabs">
+      <button class="agent-tab active" onclick="setAgentTab('dashboard',this)">📊 Dashboard</button>
+      <button class="agent-tab" onclick="setAgentTab('generate',this)">✍️ Generate</button>
+      <button class="agent-tab" onclick="setAgentTab('live',this)">⚡ Live</button>
+      <button class="agent-tab" onclick="setAgentTab('log',this)">📋 Log</button>
+    </div>
+    <div class="agent-body" id="agentBody"></div>
+  </div>
+</div>
+
+<script>
+const AFFILIATE_TAG = 'shuebird04-20';
+const AGENT_PASSWORD = 'TechPulse2025';
+const STORAGE_KEY = 'antigravity-published';
+
+const NICHES = {
+  tech:{label:'Tech & Gadgets',icon:'⚡',color:'#00d4ff'},
+  gaming:{label:'Gaming',icon:'🎮',color:'#a855f7'},
+  home:{label:'Smart Home',icon:'🏠',color:'#7c3aed'},
+  health:{label:'Health & Wellness',icon:'💊',color:'#00e5a0'},
+  fitness:{label:'Fitness & Sports',icon:'🏋️',color:'#ff4d6d'},
+  beauty:{label:'Beauty & Skincare',icon:'✨',color:'#ff6b9d'},
+  pets:{label:'Pets & Animals',icon:'🐾',color:'#fb923c'},
+  travel:{label:'Travel & Outdoors',icon:'✈️',color:'#06b6d4'},
+  food:{label:'Food & Kitchen',icon:'🍳',color:'#84cc16'},
+  finance:{label:'Finance & Investing',icon:'💰',color:'#ffc327'}
+};
+
+function getNiche(id){return NICHES[id]||{label:id,icon:'📦',color:'#64748b'};}
+
+let reviews = [
+  {id:1,title:'Sony WH-1000XM6',niche:'tech',rating:9.6,price:'$349',asin:'B0CXJ3QXPB',badge:'Top Pick',badgeColor:'#00e5a0',experience:"The moment you put these on, the world just... stops. Not in a gimmicky way — in a way that makes you realize how much noise you've been tolerating your whole life. I wore these on a cross-country flight and forgot I was on a plane.",whatWorks:"The ANC is genuinely in a class of its own. Battery lasts 30 hours straight, call quality is so clear people ask if you're on a landline, and the ear cups are so comfortable you'll forget you're wearing them after 20 minutes.",whatNeedsWork:"Sony didn't change much from the XM5 — the design refresh is subtle at best. The touch controls still have a slight learning curve and will occasionally skip tracks when you just wanted to adjust the fit.",verdict:"If you want the absolute best noise-cancelling headphones available right now, stop reading and buy these. There is nothing else at this price point that comes close.",affiliate:'https://amazon.com/s?k=sony+wh1000xm6&tag=shuebird04-20',date:'2025-04-02',source:'seed'},
+  {id:2,title:'Apple MacBook Pro M4',niche:'tech',rating:9.4,price:'$1,999',asin:'B0CM5JV268',badge:"Editor's Choice",badgeColor:'#ffc327',experience:"Three weeks in and I still catch myself staring at this display. The M4 chip handles everything I throw at it without so much as spinning a fan — video editing, 40 browser tabs, Spotify, all at once. It just works, silently, all day.",whatWorks:"Performance is absurd for a laptop this thin. The battery genuinely lasts 18 hours of real use. The display is the best I've seen on any laptop, period. The keyboard feels premium and the trackpad is still the gold standard.",whatNeedsWork:"Two Thunderbolt ports is not enough for a $2,000 machine in 2025 — you will need a hub. And if you're coming from Windows, the adjustment period is real.",verdict:"This is the laptop to buy if you're serious about your work and want something that will last 5+ years without slowing down. Expensive? Yes. Worth it? Absolutely.",affiliate:'https://amazon.com/s?k=macbook+pro+m4&tag=shuebird04-20',date:'2025-04-01',source:'seed'},
+  {id:3,title:'Dyson V15 Detect',niche:'home',rating:8.8,price:'$749',asin:'B09GJKFFXS',badge:'Best Vacuum',badgeColor:'#06b6d4',experience:"I didn't think I needed a $749 vacuum until the laser showed me what I'd been missing. Green laser light hits the floor and suddenly you can see every particle of dust that your old vacuum left behind. It's disgusting and satisfying in equal measure.",whatWorks:"Suction is relentless. The laser dust detection feature sounds like a gimmick until you use it — then it becomes something you can't live without. HEPA filtration means allergens actually get captured, not redistributed.",whatNeedsWork:"This thing is heavy for a cordless vacuum. Your wrist will know about it after a full-house clean. The price is brutal and the attachments feel slightly overcomplicated.",verdict:"If allergies are a problem in your home or you have pets, the V15 Detect pays for itself in air quality alone. The best vacuum available — decide if best is worth the price tag.",affiliate:'https://amazon.com/s?k=dyson+v15+detect&tag=shuebird04-20',date:'2025-03-20',source:'seed'}
+];
+
+let currentNiche = 'All';
+let agentRunning = false;
+let agentTab = 'dashboard';
+let streamText = '';
+let genNiche = 'tech';
+let agentLog = [
+  {time:'04/03 09:14',action:'Sony XM6 review refreshed with updated data',status:'success'},
+  {time:'04/02 11:32',action:'Antigravity sync complete',status:'success'},
+  {time:'04/01 08:00',action:'SEO audit generated for tech-pulse-reviews.com',status:'info'}
+];
+
+function imgUrl(asin,size){return `https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=${asin}&Format=_SL${size}_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=${AFFILIATE_TAG}`;}
+
+function stars(rating){const f=Math.round(rating/2);return'★'.repeat(f)+'☆'.repeat(5-f);}
+
+function renderGrid(){
+  const search=document.getElementById('searchInput').value.toLowerCase();
+  const filtered=reviews.filter(r=>(currentNiche==='All'||r.niche===currentNiche)&&r.title.toLowerCase().includes(search));
+  const grid=document.getElementById('reviewGrid');
+  document.getElementById('countBadge').textContent=filtered.length+' review'+(filtered.length!==1?'s':'');
+  document.getElementById('statCount').textContent=reviews.length;
+  if(!filtered.length){grid.innerHTML='<div class="empty"><div class="empty-icon">⚡</div><div style="color:var(--text);font-size:15px;margin-bottom:6px">No reviews in this category yet</div><div>Use the AI Agent to generate one</div></div>';return;}
+  const n=getNiche;
+  grid.innerHTML=filtered.map((r,i)=>{
+    const ni=n(r.niche);
+    const isDark=['#ffc327','#00e5a0','#06b6d4','#84cc16'].includes(r.badgeColor);
+    return `<div class="card" style="animation-delay:${i*0.05}s" onclick="openReview(${r.id})">
+      <div class="card-img">
+        <img src="${imgUrl(r.asin||'B000000000',80)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="width:72px;height:72px;object-fit:contain;border-radius:10px;background:var(--surface)"/>
+        <div class="card-img-fallback" style="display:none;background:${ni.color}15">${ni.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+            <span class="card-badge" style="background:${r.badgeColor};color:${isDark?'#000':'#fff'}">${r.badge}</span>
+            <span class="card-niche" style="color:${ni.color}">${ni.icon} ${ni.label}</span>
+          </div>
+          <h3 class="card-title">${r.title}</h3>
+          <div class="card-rating">
+            <span class="card-stars">${stars(r.rating)}</span>
+            <span class="card-score">${r.rating}/10</span>
+            <span class="card-price">${r.price}</span>
+          </div>
+        </div>
+        ${r.source==='antigravity'?'<span style="position:absolute;bottom:8px;right:10px;font-size:9px;color:#a78bfa;font-family:monospace;font-weight:700">⚡ ANTIGRAVITY</span>':''}
+      </div>
+      <div class="card-body">
+        <p class="card-excerpt">"${(r.experience||r.excerpt||'').slice(0,140)}${(r.experience||r.excerpt||'').length>140?'…':''}"</p>
+        <div class="card-footer">
+          <span class="card-cta">Read full review →</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setNiche(n,btn){
+  currentNiche=n;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function openReview(id){
+  const r=reviews.find(x=>x.id===id);if(!r)return;
+  const ni=getNiche(r.niche);
+  const isDark=['#ffc327','#00e5a0','#06b6d4','#84cc16'].includes(r.badgeColor);
+  document.getElementById('reviewModal').innerHTML=`
+    <div class="modal-header">
+      <div class="modal-img-row">
+        <div>
+          <img src="${imgUrl(r.asin||'B000000000',120)}" class="modal-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+          <div class="modal-img-fallback" style="display:none;background:${ni.color}15">${ni.icon}</div>
+        </div>
+        <div style="flex:1">
+          <div class="modal-badges">
+            <span class="card-badge" style="background:${r.badgeColor};color:${isDark?'#000':'#fff'}">${r.badge}</span>
+            <span style="background:${ni.color}15;color:${ni.color};font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid ${ni.color}33;text-transform:uppercase;letter-spacing:1px">${ni.icon} ${ni.label}</span>
+          </div>
+          <h2 class="modal-title">${r.title}</h2>
+          <div class="modal-rating">
+            <span class="modal-stars">${stars(r.rating)}</span>
+            <span class="modal-score">${r.rating}/10</span>
+            <span class="modal-price">${r.price}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-body">
+      ${r.experience?`<div class="review-section">
+        <div class="section-label" style="color:var(--accent)"><span style="background:var(--accent)"></span>The Experience</div>
+        <p class="experience-text">${r.experience}</p>
+      </div>`:''}
+      ${r.whatWorks?`<div class="works-box review-section">
+        <div class="section-label" style="color:var(--green)"><span style="background:var(--green)"></span>✓ What Works</div>
+        <p class="review-text">${r.whatWorks}</p>
+      </div>`:''}
+      ${r.whatNeedsWork?`<div class="needs-box review-section">
+        <div class="section-label" style="color:var(--red)"><span style="background:var(--red)"></span>⚠ What Needs Work</div>
+        <p class="review-text">${r.whatNeedsWork}</p>
+      </div>`:''}
+      ${r.verdict?`<div class="verdict-box review-section">
+        <div class="section-label" style="color:var(--accent)"><span style="background:var(--accent)"></span>⚡ The Verdict</div>
+        <p class="verdict-text">${r.verdict}</p>
+      </div>`:''}
+      ${!r.experience&&r.excerpt?`<p style="color:#94a3b8;font-size:15px;line-height:1.75;margin-bottom:20px">${r.excerpt}</p>`:''}
+      <a href="${r.affiliate}" target="_blank" rel="noopener noreferrer nofollow" class="btn-buy">Check Best Price on Amazon →</a>
+      <p class="affiliate-notice">* Affiliate link — we may earn a commission at no extra cost to you</p>
+      <button class="btn-close" onclick="document.getElementById('reviewOverlay').classList.remove('open')">✕ Close</button>
+    </div>`;
+  document.getElementById('reviewOverlay').classList.add('open');
+}
+
+function closeReview(e){if(e.target===document.getElementById('reviewOverlay'))document.getElementById('reviewOverlay').classList.remove('open');}
+
+// LOGIN
+function openLogin(){document.getElementById('pwInput').value='';document.getElementById('pwErr').textContent='';document.getElementById('loginOverlay').classList.add('open');setTimeout(()=>document.getElementById('pwInput').focus(),100);}
+function closeLogin(){document.getElementById('loginOverlay').classList.remove('open');}
+function checkPw(){
+  if(document.getElementById('pwInput').value===AGENT_PASSWORD){closeLogin();openAgent();}
+  else{document.getElementById('pwErr').textContent='✕ Incorrect password';document.getElementById('pwInput').value='';}
+}
+
+// AGENT
+function openAgent(){document.getElementById('agentOverlay').classList.add('open');renderAgentBody();}
+function closeAgent(){document.getElementById('agentOverlay').classList.remove('open');}
+function setAgentTab(tab,btn){agentTab=tab;document.querySelectorAll('.agent-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAgentBody();}
+
+function renderAgentBody(){
+  const body=document.getElementById('agentBody');
+  const totalViews=reviews.reduce((s,r)=>s+(r.views||0),0);
+  const estRev=reviews.reduce((s,r)=>s+(r.clicks||0)*4.5,0).toFixed(0);
+  if(agentTab==='dashboard'){
+    body.innerHTML=`
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" style="color:var(--accent)">${reviews.length}</div><div class="stat-lbl">Reviews</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--gold)">${totalViews.toLocaleString()}</div><div class="stat-lbl">Total Views</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--green)">$${estRev}</div><div class="stat-lbl">Est. Revenue</div></div>
+      </div>
+      <div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Agent Tasks</div>
+      <div class="task-grid">
+        <button class="task-btn" onclick="runTask('trendScan')" ${agentRunning?'disabled':''}>
+          <div class="task-name">🔍 Trend Scan</div>
+          <div class="task-desc">Find trending products to review for max Google traffic</div>
+        </button>
+        <button class="task-btn" onclick="runTask('seoAudit')" ${agentRunning?'disabled':''}>
+          <div class="task-name">📈 SEO Audit</div>
+          <div class="task-desc">8 specific recommendations to rank on Google page 1</div>
+        </button>
+      </div>
+      <div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">All Reviews</div>
+      ${reviews.map(r=>{const ni=getNiche(r.niche);return`<div class="review-row">
+        <div class="review-row-info">
+          <span style="font-size:18px">${ni.icon}</span>
+          <div><div class="review-row-name">${r.title}</div><div class="review-row-meta">${ni.label} · ★ ${r.rating} · ${r.date}</div></div>
+        </div>
+        <button class="btn-refresh" onclick="runRefresh(${r.id})" ${agentRunning?'disabled':''}>↻ Refresh</button>
+      </div>`;}).join('')}`;
+  } else if(agentTab==='generate'){
+    body.innerHTML=`
+      <div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Generate New Review</div>
+      <div class="gen-box">
+        <p class="gen-desc">Enter any product name — AI writes the full narrative review and adds it to the site instantly.</p>
+        <div class="gen-row">
+          <input class="gen-input" id="genInput" placeholder="e.g. iPhone 17 Pro, Ninja Creami, Garmin Fenix 8…" onkeydown="if(event.key==='Enter')runGenerate()"/>
+          <button class="btn-gen" onclick="runGenerate()" ${agentRunning?'disabled':''}>${agentRunning?'Writing…':'Generate →'}</button>
+        </div>
+        <div class="niche-pills">
+          ${Object.entries(NICHES).map(([id,n])=>`<button class="niche-pill" id="pill-${id}" onclick="setGenNiche('${id}')" style="${genNiche===id?`background:${n.color}22;border-color:${n.color};color:${n.color};font-weight:700`:''}">${n.icon} ${n.label}</button>`).join('')}
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px">
+        <div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Each review includes</div>
+        ${['The Experience — first person narrative','What Works — specific honest praise','What Needs Work — real criticism that builds trust','The Verdict — clear buy or skip','Amazon affiliate link with tag shuebird04-20','Published to site instantly'].map(f=>`<div style="color:var(--muted);font-size:12px;padding:3px 0;display:flex;gap:7px"><span style="color:var(--green)">✓</span>${f}</div>`).join('')}
+      </div>`;
+  } else if(agentTab==='live'){
+    body.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase">Live Output</div>
+        ${agentRunning?'<span style="color:var(--green);font-size:11px;font-family:monospace">● Streaming…</span>':''}
+      </div>
+      <div class="terminal" id="terminalOut">${streamText||'<span class="terminal-placeholder">// Run a task from Dashboard or Generate to see live output here…</span>'}${agentRunning?'<span class="terminal-cursor">▋</span>':''}</div>`;
+  } else {
+    body.innerHTML=`
+      <div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Activity Log</div>
+      ${agentLog.map(e=>`<div class="log-entry" style="border-left:3px solid ${e.status==='success'?'var(--green)':e.status==='error'?'var(--red)':'var(--accent)'}">
+        <span class="log-time">${e.time}</span>
+        <span class="log-action">${e.action}</span>
+        <span class="log-status" style="color:${e.status==='success'?'var(--green)':e.status==='error'?'var(--red)':'var(--accent)'}">${e.status}</span>
+      </div>`).join('')}`;
   }
-
-  return (
-    <img
-      src={imgSrc}
-      alt={title}
-      onError={() => setFailed(true)}
-      style={{ width: size, height: size, objectFit: "contain", borderRadius: 8, background: "#0e1520" }}
-    />
-  );
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function getNicheInfo(nicheId) {
-  return NICHES.find(n => n.id === nicheId) || { label: nicheId, icon: "📦", color: "#64748b" };
+function setGenNiche(id){genNiche=id;renderAgentBody();}
+
+function addLog(action,status='success'){
+  const now=new Date();
+  const time=String(now.getMonth()+1).padStart(2,'0')+'/'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  agentLog.unshift({time,action,status});
 }
 
-function Badge({ label, color }) {
-  const isDark = ["#ffc327", "#00e5a0", "#06b6d4", "#84cc16"].includes(color);
-  return (
-    <span style={{ background: color, color: isDark ? "#000" : "#fff", fontSize: 10, fontWeight: 800, padding: "3px 9px", borderRadius: 5, letterSpacing: 0.8, textTransform: "uppercase" }}>
-      {label}
-    </span>
-  );
+function setAgentRunning(val,task=''){
+  agentRunning=val;
+  const badge=document.getElementById('agentStatusBadge');
+  if(badge){badge.textContent=val?`● ${task.slice(0,25)}…`:'○ IDLE';badge.style.background=val?'rgba(0,229,160,0.15)':'#1c2a40';badge.style.color=val?'var(--green)':'#4a6080';}
 }
 
-// ── Keyword Strategy Panel ────────────────────────────────────────────────────
-function KeywordPanel({ onClose }) {
-  const [running, setRunning] = useState(false);
-  const [selectedNiches, setSelectedNiches] = useState(["tech", "gaming", "home"]);
-  const [results, setResults] = useState("");
-  const [done, setDone] = useState(false);
-  const outRef = useRef(null);
+async function callAPI(prompt,onChunk){
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,stream:true,messages:[{role:'user',content:prompt}]})
+  });
+  const reader=resp.body.getReader();const dec=new TextDecoder();let full='';
+  while(true){const{done,value}=await reader.read();if(done)break;
+    for(const line of dec.decode(value).split('\n').filter(l=>l.startsWith('data: '))){
+      try{const j=JSON.parse(line.slice(6));if(j.delta?.text){full+=j.delta.text;if(onChunk)onChunk(full);}}catch{}
+    }
+  }
+  return full;
+}
 
-  useEffect(() => { if (outRef.current) outRef.current.scrollTop = outRef.current.scrollHeight; }, [results]);
-
-  const toggleNiche = (id) => {
-    setSelectedNiches(prev => prev.includes(id) ? prev.filter(n => n !== id) : [...prev, id]);
+async function runTask(type){
+  if(agentRunning)return;
+  setAgentRunning(true,type==='trendScan'?'Trend Scan':'SEO Audit');
+  streamText='';agentTab='live';
+  document.querySelectorAll('.agent-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.agent-tab')[2].classList.add('active');
+  renderAgentBody();
+  const prompts={
+    trendScan:'Identify 5 trending products to review NOW for maximum Google traffic and Amazon affiliate revenue in 2025. For each: product name, niche, why trending, search volume tier (High/Medium), best review angle. Be specific and actionable.',
+    seoAudit:'Give 8 specific actionable SEO recommendations for tech-pulse-reviews.com to rank on Google page 1. Cover schema markup, E-E-A-T signals, keyword clustering, internal linking, Core Web Vitals, featured snippets, affiliate disclosure. Be technical and specific. Number each one.'
   };
-
-  const generate = async () => {
-    if (!selectedNiches.length) return;
-    setRunning(true); setResults(""); setDone(false);
-    const nicheNames = selectedNiches.map(id => getNicheInfo(id).label).join(", ");
-    const prompt = `You are an SEO expert specializing in affiliate review sites. Generate a complete keyword strategy for tech-pulse-reviews.com targeting these niches: ${nicheNames}.
-
-For EACH niche provide exactly:
-
-NICHE: [name]
-TARGET KEYWORDS (5 long-tail, low-competition, high buyer-intent):
-1. [keyword] — monthly searches: [est] — difficulty: [Low/Medium]
-2. [keyword] — monthly searches: [est] — difficulty: [Low/Medium]
-3. [keyword] — monthly searches: [est] — difficulty: [Low/Medium]
-4. [keyword] — monthly searches: [est] — difficulty: [Low/Medium]
-5. [keyword] — monthly searches: [est] — difficulty: [Low/Medium]
-FEATURED SNIPPET TARGET: [one question this site could own]
-CONTENT ANGLE: [specific review angle to beat competitors]
-AFFILIATE OPPORTUNITY: [highest commission product in this niche]
-
-Focus on keywords a brand new site can rank for in 60-90 days. Avoid head terms. Target buyer-intent phrases like "best X for Y", "X vs Y", "cheapest X that still works".`;
-
-    try {
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, stream: true, messages: [{ role: "user", content: prompt }] })
-      });
-      const reader = resp.body.getReader();
-      const dec = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done: d, value } = await reader.read();
-        if (d) break;
-        for (const line of dec.decode(value).split("\n").filter(l => l.startsWith("data: "))) {
-          try { const j = JSON.parse(line.slice(6)); if (j.delta?.text) { full += j.delta.text; setResults(full); } } catch {}
-        }
-      }
-      setDone(true);
-    } catch (e) { setResults("Error: " + e.message); }
-    setRunning(false);
-  };
-
-  const copyResults = () => { navigator.clipboard.writeText(results); };
-
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(8px)" }}>
-      <div style={{ background: "#080c14", border: "1px solid #1c2a40", borderRadius: 18, width: "min(820px,96vw)", maxHeight: "92vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "20px 28px", borderBottom: "1px solid #1c2a40", display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(135deg,#080c14,#0e1520)" }}>
-          <div>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 900, color: "#e8f0fe", display: "flex", alignItems: "center", gap: 10 }}>
-              📈 Keyword Strategy Generator
-            </div>
-            <div style={{ fontSize: 12, color: "#4a6080", marginTop: 3 }}>Low-competition keywords your site can rank for in 60–90 days</div>
-          </div>
-          <button onClick={onClose} style={{ background: "#0e1520", border: "1px solid #1c2a40", color: "#4a6080", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>✕ Close</button>
-        </div>
-
-        <div style={{ padding: 24, overflowY: "auto", flex: 1 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "#4a6080", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>Select Niches to Target</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-            {NICHES.map(n => (
-              <button key={n.id} onClick={() => toggleNiche(n.id)}
-                style={{ background: selectedNiches.includes(n.id) ? n.color + "22" : "#0e1520", border: `1px solid ${selectedNiches.includes(n.id) ? n.color : "#1c2a40"}`, borderRadius: 8, padding: "7px 14px", cursor: "pointer", color: selectedNiches.includes(n.id) ? n.color : "#4a6080", fontSize: 12, fontWeight: selectedNiches.includes(n.id) ? 700 : 400, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5 }}>
-                {n.icon} {n.label}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <button onClick={generate} disabled={running || !selectedNiches.length}
-              style={{ background: "linear-gradient(135deg,#00d4ff,#7c3aed)", color: "#fff", border: "none", borderRadius: 10, padding: "12px 28px", cursor: "pointer", fontWeight: 800, fontSize: 14, fontFamily: "inherit", opacity: (running || !selectedNiches.length) ? 0.4 : 1 }}>
-              {running ? "⚡ Generating…" : "⚡ Generate Keyword Strategy"}
-            </button>
-            {done && (
-              <button onClick={copyResults} style={{ background: "#0e1520", border: "1px solid #1c2a40", color: "#00e5a0", borderRadius: 10, padding: "12px 20px", cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: 700 }}>
-                Copy All →
-              </button>
-            )}
-          </div>
-
-          <div ref={outRef} style={{ background: "#020408", border: "1px solid #1c2a40", borderRadius: 12, padding: 20, minHeight: 280, maxHeight: 420, overflowY: "auto", fontFamily: "'Courier New',monospace", fontSize: 12, color: "#94a3b8", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
-            {results || <span style={{ color: "#1c2a40" }}>// Select niches and click Generate to build your keyword strategy…</span>}
-            {running && <span style={{ color: "#00d4ff" }}>▋</span>}
-          </div>
-
-          {done && (
-            <div style={{ background: "rgba(0,229,160,0.06)", border: "1px solid rgba(0,229,160,0.2)", borderRadius: 10, padding: "14px 18px", marginTop: 16 }}>
-              <div style={{ color: "#00e5a0", fontSize: 13, fontWeight: 700, marginBottom: 6 }}>✓ Next Steps</div>
-              {["Feed these keywords into Antigravity — select the matching niche and run the engine", "Each keyword becomes a review page — Antigravity writes it, Tech-Pulse publishes it", "Submit tech-pulse-reviews.com to Google Search Console (free) to start indexing", "Target 2–3 new reviews per week — Google rewards consistency"].map(s => (
-                <div key={s} style={{ color: "#4a6080", fontSize: 12, padding: "3px 0", display: "flex", gap: 8 }}><span style={{ color: "#00e5a0" }}>→</span>{s}</div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  try{
+    await callAPI(prompts[type],(text)=>{
+      streamText=text;
+      const t=document.getElementById('terminalOut');
+      if(t)t.innerHTML=text+'<span class="terminal-cursor">▋</span>';
+    });
+    addLog(type==='trendScan'?'Trend scan complete':'SEO audit complete','success');
+    const t=document.getElementById('terminalOut');if(t)t.innerHTML=streamText;
+  }catch(e){addLog(type+' failed: '+e.message,'error');streamText='Error: '+e.message;}
+  setAgentRunning(false);renderAgentBody();
 }
 
-// ── Review Card ───────────────────────────────────────────────────────────────
-function ReviewCard({ review, onClick, index }) {
-  const niche = getNicheInfo(review.niche);
-  return (
-    <div onClick={() => onClick(review)}
-      style={{ background: "#131d2e", border: "1px solid #1c2a40", borderRadius: 16, overflow: "hidden", cursor: "pointer", transition: "transform 0.25s, box-shadow 0.25s, border-color 0.25s", animation: `fadeUp 0.4s ${index * 0.06}s both` }}
-      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-6px)"; e.currentTarget.style.boxShadow = "0 24px 48px rgba(0,0,0,0.5)"; e.currentTarget.style.borderColor = "rgba(0,212,255,0.25)"; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; e.currentTarget.style.borderColor = "#1c2a40"; }}>
-
-      {/* Product Image */}
-      <div style={{ background: "linear-gradient(135deg,#0e1520,#131d2e)", padding: "24px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 140, position: "relative", borderBottom: "1px solid #1c2a40" }}>
-        <AmazonImage asin={review.asin} title={review.title} niche={review.niche} size={110} />
-        <span style={{ position: "absolute", top: 10, left: 10 }}><Badge label={review.badge} color={review.badgeColor} /></span>
-        <div style={{ position: "absolute", top: 10, right: 10, background: "rgba(8,12,20,0.85)", border: "1px solid #1c2a40", borderRadius: 8, padding: "4px 10px", display: "flex", alignItems: "center", gap: 4 }}>
-          <span style={{ color: "#ffc327", fontSize: 13 }}>★</span>
-          <span style={{ fontFamily: "'Syne',sans-serif", fontSize: 15, fontWeight: 900, color: "#e8f0fe" }}>{review.rating}</span>
-          <span style={{ fontSize: 10, color: "#4a6080" }}>/10</span>
-        </div>
-        {review.source === "antigravity" && (
-          <span style={{ position: "absolute", bottom: 8, right: 10, fontSize: 9, fontWeight: 800, color: "#00d4ff", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 4, padding: "2px 6px", letterSpacing: 1 }}>⚡ ANTIGRAVITY</span>
-        )}
-      </div>
-
-      <div style={{ padding: "16px 20px 20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-          <span style={{ fontSize: 12 }}>{niche.icon}</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: niche.color, textTransform: "uppercase", letterSpacing: 1.5 }}>{niche.label}</span>
-        </div>
-        <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 16, fontWeight: 800, color: "#e8f0fe", margin: "0 0 8px", lineHeight: 1.25 }}>{review.title}</h3>
-        <p style={{ color: "#4a6080", fontSize: 13, lineHeight: 1.55, margin: "0 0 14px" }}>{review.excerpt}</p>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ color: "#00e5a0", fontWeight: 800, fontSize: 15, fontFamily: "'Syne',sans-serif" }}>{review.price}</span>
-          <span style={{ color: "#00d4ff", fontSize: 12, fontWeight: 600 }}>Read Review →</span>
-        </div>
-      </div>
-    </div>
-  );
+async function runRefresh(id){
+  const r=reviews.find(x=>x.id===id);if(!r||agentRunning)return;
+  setAgentRunning(true,'Refresh: '+r.title.slice(0,20));
+  streamText='';agentTab='live';
+  document.querySelectorAll('.agent-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.agent-tab')[2].classList.add('active');
+  renderAgentBody();
+  try{
+    const text=await callAPI(`Update this product review for 2025 accuracy. Product: ${r.title}. Write exactly:
+EXPERIENCE: (2-3 sentences, first person, what it actually feels like to use it)
+WHAT_WORKS: (2-3 sentences, specific honest praise)
+WHAT_NEEDS_WORK: (1-2 sentences, real honest criticism)
+VERDICT: (1-2 punchy sentences, clear buy or skip)
+Be specific and authentic, not generic.`,(t)=>{
+      streamText=t;const el=document.getElementById('terminalOut');if(el)el.innerHTML=t+'<span class="terminal-cursor">▋</span>';
+    });
+    const g=(pat)=>{const m=text.match(pat);return m?m[1].trim():''};
+    const exp=g(/EXPERIENCE:\s*(.+?)(?=\nWHAT_WORKS:|$)/s);
+    const ww=g(/WHAT_WORKS:\s*(.+?)(?=\nWHAT_NEEDS_WORK:|$)/s);
+    const wn=g(/WHAT_NEEDS_WORK:\s*(.+?)(?=\nVERDICT:|$)/s);
+    const vd=g(/VERDICT:\s*(.+?)(?=\n[A-Z_]+:|$)/s);
+    if(exp){r.experience=exp.replace(/\n/g,' ');r.whatWorks=ww.replace(/\n/g,' ');r.whatNeedsWork=wn.replace(/\n/g,' ');r.verdict=vd.replace(/\n/g,' ');r.date=new Date().toISOString().split('T')[0];}
+    addLog('Refreshed: '+r.title,'success');renderGrid();
+    const el=document.getElementById('terminalOut');if(el)el.innerHTML=streamText;
+  }catch(e){addLog('Refresh failed: '+e.message,'error');}
+  setAgentRunning(false);renderAgentBody();
 }
 
-// ── Review Modal ──────────────────────────────────────────────────────────────
-function ReviewModal({ review, onClose }) {
-  if (!review) return null;
-  const niche = getNicheInfo(review.niche);
-  const stars = Math.round(review.rating / 2);
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(8px)" }} onClick={onClose}>
-      <div style={{ background: "#131d2e", border: "1px solid #1c2a40", borderRadius: 20, width: "min(700px,100%)", maxHeight: "90vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
-        <div style={{ background: "linear-gradient(135deg,#080c14,#0e1520)", padding: "36px 36px 28px", textAlign: "center", borderRadius: "20px 20px 0 0", borderBottom: "1px solid #1c2a40" }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-            <AmazonImage asin={review.asin} title={review.title} niche={review.niche} size={140} />
-          </div>
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-            <Badge label={review.badge} color={review.badgeColor} />
-            <span style={{ background: "rgba(0,212,255,0.1)", color: niche.color, fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, border: `1px solid ${niche.color}33`, textTransform: "uppercase", letterSpacing: 1 }}>{niche.icon} {niche.label}</span>
-          </div>
-          <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(20px,4vw,26px)", fontWeight: 900, color: "#e8f0fe", margin: "0 0 10px" }}>{review.title}</h2>
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12 }}>
-            <span style={{ color: "#ffc327", fontSize: 18, letterSpacing: 2 }}>{"★".repeat(stars)}{"☆".repeat(5 - stars)}</span>
-            <span style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 900, color: "#ffc327" }}>{review.rating}/10</span>
-          </div>
-        </div>
-        <div style={{ padding: "28px 32px" }}>
-          <p style={{ color: "#4a6080", fontSize: 15, lineHeight: 1.7, marginBottom: 24 }}>{review.excerpt}</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
-            <div style={{ background: "#0e1520", borderRadius: 12, padding: 16, border: "1px solid #1c2a40" }}>
-              <div style={{ color: "#00e5a0", fontSize: 11, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>✓ Pros</div>
-              {review.pros.map(p => <div key={p} style={{ color: "#e8f0fe", fontSize: 13, padding: "4px 0", display: "flex", gap: 8 }}><span style={{ color: "#00e5a0" }}>+</span>{p}</div>)}
-            </div>
-            <div style={{ background: "#0e1520", borderRadius: 12, padding: 16, border: "1px solid #1c2a40" }}>
-              <div style={{ color: "#ff4d6d", fontSize: 11, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>✗ Cons</div>
-              {review.cons.map(c => <div key={c} style={{ color: "#e8f0fe", fontSize: 13, padding: "4px 0", display: "flex", gap: 8 }}><span style={{ color: "#ff4d6d" }}>−</span>{c}</div>)}
-            </div>
-          </div>
-          <a href={review.affiliate} target="_blank" rel="noopener noreferrer nofollow"
-            style={{ display: "block", background: "linear-gradient(135deg,#ffc327,#ff9500)", color: "#000", textAlign: "center", padding: "16px 24px", borderRadius: 12, fontWeight: 800, fontSize: 16, textDecoration: "none", fontFamily: "'Syne',sans-serif", marginBottom: 8 }}>
-            Check Best Price on Amazon →
-          </a>
-          <p style={{ color: "#1c2a40", fontSize: 11, textAlign: "center", marginBottom: 16 }}>* Affiliate link — we may earn a commission at no extra cost to you</p>
-          <button onClick={onClose} style={{ display: "block", margin: "0 auto", background: "transparent", border: "1px solid #1c2a40", color: "#4a6080", borderRadius: 8, padding: "8px 22px", cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>✕ Close</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Login Gate ────────────────────────────────────────────────────────────────
-function LoginGate({ onSuccess, onClose }) {
-  const [pw, setPw] = useState("");
-  const [err, setErr] = useState("");
-  const check = () => { if (pw === AGENT_PASSWORD) onSuccess(); else { setErr("✕ Incorrect password"); setPw(""); } };
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(8px)" }}>
-      <div style={{ background: "#080c14", border: "1px solid #1c2a40", borderRadius: 18, width: "min(400px,95vw)", overflow: "hidden" }}>
-        <div style={{ background: "linear-gradient(135deg,#080c14,#0e1520)", padding: "32px 32px 24px", textAlign: "center", borderBottom: "1px solid #1c2a40" }}>
-          <div style={{ width: 52, height: 52, background: "linear-gradient(135deg,#00d4ff,#7c3aed)", borderRadius: 14, margin: "0 auto 14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>🔒</div>
-          <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 900, color: "#e8f0fe", marginBottom: 4 }}>Agent Access</div>
-          <div style={{ color: "#4a6080", fontSize: 13 }}>Enter your password to continue</div>
-        </div>
-        <div style={{ padding: "24px 32px" }}>
-          <input type="password" value={pw} onChange={e => { setPw(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && check()} placeholder="Password…" autoFocus
-            style={{ width: "100%", background: "#0e1520", border: "1px solid #1c2a40", borderRadius: 10, padding: "11px 14px", color: "#e8f0fe", fontSize: 15, outline: "none", fontFamily: "inherit", marginBottom: 10 }} />
-          {err && <div style={{ color: "#ff4d6d", fontSize: 12, marginBottom: 10, textAlign: "center" }}>{err}</div>}
-          <button onClick={check} style={{ width: "100%", background: "linear-gradient(135deg,#00d4ff,#7c3aed)", color: "#fff", border: "none", borderRadius: 10, padding: 12, cursor: "pointer", fontWeight: 800, fontSize: 15, fontFamily: "inherit", marginBottom: 10 }}>Unlock →</button>
-          <button onClick={onClose} style={{ width: "100%", background: "transparent", border: "1px solid #1c2a40", color: "#4a6080", borderRadius: 10, padding: 9, cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>Cancel</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Agent Panel ───────────────────────────────────────────────────────────────
-function AgentPanel({ reviews, setReviews, onClose, onKeywords }) {
-  const [tab, setTab] = useState("dashboard");
-  const [running, setRunning] = useState(false);
-  const [streamText, setStreamText] = useState("");
-  const [log, setLog] = useState(AGENT_LOG_SEED);
-  const [genInput, setGenInput] = useState("");
-  const [genNiche, setGenNiche] = useState("tech");
-  const termRef = useRef(null);
-
-  useEffect(() => { if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight; }, [streamText]);
-
-  const addLog = (action, status = "success") => {
-    const now = new Date();
-    const time = `${String(now.getMonth()+1).padStart(2,"0")}/${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
-    setLog(prev => [{ time, action, status }, ...prev]);
-  };
-
-  const runTask = async (taskName, prompt, onComplete) => {
-    if (running) return;
-    setRunning(true); setStreamText(""); setTab("live");
-    try {
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, stream: true, messages: [{ role: "user", content: prompt }] })
-      });
-      const reader = resp.body.getReader();
-      const dec = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        for (const line of dec.decode(value).split("\n").filter(l => l.startsWith("data: "))) {
-          try { const j = JSON.parse(line.slice(6)); if (j.delta?.text) { full += j.delta.text; setStreamText(full); } } catch {}
-        }
-      }
-      if (onComplete) onComplete(full);
-      addLog(taskName, "success");
-    } catch (e) { addLog(taskName + " — failed", "error"); setStreamText("Error: " + e.message); }
-    setRunning(false);
-  };
-
-  const handleSync = async () => {
-    try {
-      const keys = await window.storage.list(ANTIGRAVITY_KEY + ":", true);
-      let added = 0;
-      for (const key of (keys?.keys || [])) {
-        try {
-          const result = await window.storage.get(key, true);
-          if (result?.value) {
-            const r = JSON.parse(result.value);
-            setReviews(prev => { if (prev.find(x => x.id === r.id)) return prev; added++; return [r, ...prev]; });
-          }
-        } catch {}
-      }
-      addLog(`Antigravity sync — ${added} new review${added !== 1 ? "s" : ""} imported`, added > 0 ? "success" : "info");
-    } catch (e) { addLog("Sync failed: " + e.message, "error"); }
-  };
-
-  const handleGenerate = () => {
-    if (!genInput.trim()) return;
-    const product = genInput.trim();
-    const niche = getNicheInfo(genNiche);
-    runTask(`Generated: ${product}`,
-      `Write a full SEO-optimized product review for: ${product} (niche: ${niche.label}).
+async function runGenerate(){
+  const input=document.getElementById('genInput');
+  if(!input||!input.value.trim()||agentRunning)return;
+  const product=input.value.trim();
+  const ni=getNiche(genNiche);
+  setAgentRunning(true,'Generate: '+product.slice(0,20));
+  streamText='';agentTab='live';
+  document.querySelectorAll('.agent-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.agent-tab')[2].classList.add('active');
+  renderAgentBody();
+  try{
+    const text=await callAPI(`Write a full SEO-optimized product review for: ${product} (niche: ${ni.label}).
+Output exactly:
 TITLE: (SEO title with year)
 RATING: (X.X out of 10)
-PRICE: (estimated retail)
-EXCERPT: (2 punchy sentences)
-PROS: bullet1 | bullet2 | bullet3 | bullet4
-CONS: bullet1 | bullet2
-SEO_DESC: (under 160 chars)
-VERDICT: (strong closing paragraph with CTA)`,
-      async (text) => {
-        const g = (pat) => { const m = text.match(pat); return m ? m[1].trim() : ""; };
-        const title = g(/TITLE:\s*(.+)/);
-        const rating = parseFloat(g(/RATING:\s*([\d.]+)/) || "8.5");
-        const price = g(/PRICE:\s*(.+)/) || "Check Price";
-        const excerpt = g(/EXCERPT:\s*(.+?)(?=\nPROS:|$)/s).replace(/\n/g, " ");
-        const prosRaw = g(/PROS:\s*(.+?)(?=\nCONS:|$)/s);
-        const consRaw = g(/CONS:\s*(.+?)(?=\nSEO_DESC:|$)/s);
-        const seoDesc = g(/SEO_DESC:\s*(.+)/);
-        const pros = prosRaw.split("|").map(s => s.replace(/^[-•*]\s*/, "").trim()).filter(Boolean).slice(0, 4);
-        const cons = consRaw.split("|").map(s => s.replace(/^[-•*]\s*/, "").trim()).filter(Boolean).slice(0, 2);
-        if (!title) return;
-        const newReview = {
-          id: Date.now(), title, niche: genNiche, rating, price,
-          asin: null, badge: "New Review", badgeColor: niche.color,
-          excerpt: excerpt.slice(0, 220), pros, cons, seoDesc,
-          affiliate: `https://amazon.com/s?k=${encodeURIComponent(product)}&tag=${AFFILIATE_TAG}`,
-          date: new Date().toISOString().split("T")[0], views: 0, clicks: 0, source: "antigravity"
-        };
-        try { await window.storage.set(ANTIGRAVITY_KEY + ":" + newReview.id, JSON.stringify(newReview), true); } catch {}
-        setReviews(prev => [newReview, ...prev]);
-        setGenInput("");
-      }
-    );
-  };
-
-  const totalViews = reviews.reduce((s, r) => s + (r.views || 0), 0);
-  const estRevenue = reviews.reduce((s, r) => s + (r.clicks || 0) * 4.5, 0).toFixed(0);
-
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 600, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(8px)" }}>
-      <div style={{ background: "#080c14", border: "1px solid #1c2a40", borderRadius: 18, width: "min(940px,96vw)", maxHeight: "92vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "18px 28px", borderBottom: "1px solid #1c2a40", display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(135deg,#080c14,#0e1520)" }}>
-          <div>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 900, color: "#e8f0fe", display: "flex", alignItems: "center", gap: 10 }}>
-              🤖 AI Site Agent
-              <span style={{ background: running ? "rgba(0,229,160,0.15)" : "#1c2a40", color: running ? "#00e5a0" : "#4a6080", fontSize: 10, padding: "2px 10px", borderRadius: 99, fontWeight: 800 }}>
-                {running ? "● RUNNING" : "○ IDLE"}
-              </span>
-            </div>
-            <div style={{ fontSize: 12, color: "#4a6080", marginTop: 3, fontFamily: "monospace" }}>tech-pulse-reviews.com · Antigravity Connected</div>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => { onClose(); onKeywords(); }} style={{ background: "rgba(0,212,255,0.1)", color: "#00d4ff", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "inherit" }}>📈 Keywords</button>
-            <button onClick={handleSync} style={{ background: "rgba(167,139,250,0.1)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.2)", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: 700, fontFamily: "inherit" }}>⚡ Sync</button>
-            <button onClick={onClose} style={{ background: "#0e1520", border: "1px solid #1c2a40", color: "#4a6080", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13, fontFamily: "inherit" }}>✕</button>
-          </div>
-        </div>
-        <div style={{ display: "flex", borderBottom: "1px solid #1c2a40" }}>
-          {["dashboard", "generate", "live", "log"].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "11px 0", background: tab === t ? "#0e1520" : "transparent", color: tab === t ? "#e8f0fe" : "#4a6080", border: "none", borderBottom: `2px solid ${tab === t ? "#00d4ff" : "transparent"}`, cursor: "pointer", fontSize: 13, fontFamily: "inherit", fontWeight: tab === t ? 700 : 400, textTransform: "capitalize" }}>
-              {t === "dashboard" ? "📊 Dashboard" : t === "generate" ? "✍️ Generate" : t === "live" ? "⚡ Live" : "📋 Log"}
-            </button>
-          ))}
-        </div>
-        <div style={{ overflowY: "auto", flex: 1, padding: 24 }}>
-          {tab === "dashboard" && (
-            <div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14, marginBottom: 24 }}>
-                {[{ icon: "📝", val: reviews.length, label: "Reviews" }, { icon: "👁️", val: totalViews.toLocaleString(), label: "Views" }, { icon: "💰", val: `$${estRevenue}`, label: "Est. Revenue" }].map(s => (
-                  <div key={s.label} style={{ background: "#0e1520", border: "1px solid #1c2a40", borderRadius: 12, padding: 16, textAlign: "center" }}>
-                    <div style={{ fontSize: 24, marginBottom: 6 }}>{s.icon}</div>
-                    <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 900, color: "#e8f0fe" }}>{s.val}</div>
-                    <div style={{ fontSize: 11, color: "#4a6080", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.8 }}>{s.label}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#4a6080", letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>All Reviews</div>
-              {reviews.map(r => {
-                const n = getNicheInfo(r.niche);
-                return (
-                  <div key={r.id} style={{ background: "#0e1520", border: "1px solid #1c2a40", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, gap: 10 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                      <AmazonImage asin={r.asin} title={r.title} niche={r.niche} size={36} />
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ color: "#e8f0fe", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "40vw" }}>{r.title}</div>
-                        <div style={{ color: "#4a6080", fontSize: 11 }}>{n.icon} {n.label} · {r.rating}/10</div>
-                      </div>
-                    </div>
-                    <button onClick={() => runTask(`Refreshed: ${r.title}`, `Update this review for 2025 SEO. Product: ${r.title}. Write: EXCERPT (2 sentences), PROS (3 items separated by |), CONS (2 items separated by |), SEO_DESC (under 160 chars).`)} disabled={running}
-                      style={{ background: "rgba(0,212,255,0.1)", color: "#00d4ff", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 11, fontWeight: 700, fontFamily: "inherit", opacity: running ? 0.4 : 1, whiteSpace: "nowrap" }}>
-                      ↻ Refresh
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {tab === "generate" && (
-            <div>
-              <div style={{ background: "#0e1520", border: "1px solid #1c2a40", borderRadius: 12, padding: 20, marginBottom: 16 }}>
-                <p style={{ color: "#4a6080", fontSize: 13, marginBottom: 14 }}>Enter any product — AI writes the full SEO review and publishes it instantly.</p>
-                <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-                  <input value={genInput} onChange={e => setGenInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleGenerate()} placeholder="e.g. iPhone 17 Pro, Ninja Creami, Garmin Fenix 8…"
-                    style={{ flex: 1, background: "#080c14", border: "1px solid #1c2a40", borderRadius: 8, padding: "10px 14px", color: "#e8f0fe", fontSize: 14, outline: "none", fontFamily: "inherit" }} />
-                  <button onClick={handleGenerate} disabled={running || !genInput.trim()} style={{ background: "linear-gradient(135deg,#00d4ff,#7c3aed)", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 800, fontSize: 14, fontFamily: "inherit", opacity: (running || !genInput.trim()) ? 0.4 : 1 }}>
-                    {running ? "Writing…" : "Generate →"}
-                  </button>
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {NICHES.map(n => (
-                    <button key={n.id} onClick={() => setGenNiche(n.id)} style={{ background: genNiche === n.id ? n.color + "22" : "#080c14", border: `1px solid ${genNiche === n.id ? n.color : "#1c2a40"}`, borderRadius: 8, padding: "6px 12px", cursor: "pointer", color: genNiche === n.id ? n.color : "#4a6080", fontSize: 12, fontWeight: genNiche === n.id ? 700 : 400, fontFamily: "inherit" }}>
-                      {n.icon} {n.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-          {tab === "live" && (
-            <div>
-              <div ref={termRef} style={{ background: "#020408", border: "1px solid #1c2a40", borderRadius: 12, padding: 20, minHeight: 300, maxHeight: 440, overflowY: "auto", fontFamily: "monospace", fontSize: 13, color: "#94a3b8", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-                {streamText || <span style={{ color: "#1c2a40" }}>// Run a task to see live output…</span>}
-                {running && <span style={{ color: "#00e5a0" }}>▋</span>}
-              </div>
-            </div>
-          )}
-          {tab === "log" && (
-            <div>
-              {log.map((e, i) => (
-                <div key={i} style={{ background: "#0e1520", borderRadius: 8, padding: "10px 14px", display: "flex", alignItems: "center", gap: 12, marginBottom: 8, borderLeft: `3px solid ${e.status === "success" ? "#00e5a0" : e.status === "error" ? "#ff4d6d" : "#00d4ff"}` }}>
-                  <span style={{ color: "#4a6080", fontSize: 11, fontFamily: "monospace", whiteSpace: "nowrap" }}>{e.time}</span>
-                  <span style={{ color: "#e8f0fe", fontSize: 13, flex: 1 }}>{e.action}</span>
-                  <span style={{ color: e.status === "success" ? "#00e5a0" : e.status === "error" ? "#ff4d6d" : "#00d4ff", fontSize: 10, fontWeight: 800, textTransform: "uppercase" }}>{e.status}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+PRICE: (estimated retail price)
+EXPERIENCE: (2-3 sentences, first person, what it actually feels like to use this product)
+WHAT_WORKS: (2-3 sentences, specific genuine praise)
+WHAT_NEEDS_WORK: (1-2 sentences, honest real criticism)
+VERDICT: (1-2 punchy sentences, clear buy or skip recommendation)
+Write like a real person who actually used this product. Specific details, honest tone.`,(t)=>{
+      streamText=t;const el=document.getElementById('terminalOut');if(el)el.innerHTML=t+'<span class="terminal-cursor">▋</span>';
+    });
+    const g=(pat)=>{const m=text.match(pat);return m?m[1].trim():''};
+    const title=g(/TITLE:\s*(.+)/);
+    const rating=parseFloat(g(/RATING:\s*([\d.]+)/)||'8.5');
+    const price=g(/PRICE:\s*(.+)/)||'Check Price';
+    const exp=g(/EXPERIENCE:\s*(.+?)(?=\nWHAT_WORKS:|$)/s);
+    const ww=g(/WHAT_WORKS:\s*(.+?)(?=\nWHAT_NEEDS_WORK:|$)/s);
+    const wn=g(/WHAT_NEEDS_WORK:\s*(.+?)(?=\nVERDICT:|$)/s);
+    const vd=g(/VERDICT:\s*(.+?)(?=\n[A-Z_]+:|$)/s);
+    if(title){
+      const newR={id:Date.now(),title,niche:genNiche,rating,price,asin:null,badge:'New Review',badgeColor:ni.color,experience:exp.replace(/\n/g,' '),whatWorks:ww.replace(/\n/g,' '),whatNeedsWork:wn.replace(/\n/g,' '),verdict:vd.replace(/\n/g,' '),affiliate:`https://amazon.com/s?k=${encodeURIComponent(product)}&tag=${AFFILIATE_TAG}`,date:new Date().toISOString().split('T')[0],source:'agent'};
+      reviews.unshift(newR);renderGrid();
+      addLog('Generated review: '+title,'success');
+    }
+    if(input)input.value='';
+    const el=document.getElementById('terminalOut');if(el)el.innerHTML=streamText;
+  }catch(e){addLog('Generate failed: '+e.message,'error');}
+  setAgentRunning(false);renderAgentBody();
 }
 
-// ── Main App ──────────────────────────────────────────────────────────────────
-export default function App() {
-  const [reviews, setReviews] = useState(SEED_REVIEWS);
-  const [niche, setNiche] = useState("All");
-  const [search, setSearch] = useState("");
-  const [selectedReview, setSelectedReview] = useState(null);
-  const [showLogin, setShowLogin] = useState(false);
-  const [showAgent, setShowAgent] = useState(false);
-  const [showKeywords, setShowKeywords] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const keys = await window.storage.list(ANTIGRAVITY_KEY + ":", true);
-        for (const key of (keys?.keys || [])) {
-          try {
-            const result = await window.storage.get(key, true);
-            if (result?.value) {
-              const r = JSON.parse(result.value);
-              setReviews(prev => prev.find(x => x.id === r.id) ? prev : [r, ...prev]);
-            }
-          } catch {}
-        }
-      } catch {}
-    })();
-  }, []);
-
-  const filtered = reviews.filter(r =>
-    (niche === "All" || r.niche === niche) &&
-    (r.title.toLowerCase().includes(search.toLowerCase()) || getNicheInfo(r.niche).label.toLowerCase().includes(search.toLowerCase()))
-  );
-
-  return (
-    <div style={{ minHeight: "100vh", background: "#080c14", fontFamily: "'DM Sans',sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap');
-        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-        *{box-sizing:border-box}
-      `}</style>
-
-      {/* NAV */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 200, background: "rgba(8,12,20,0.95)", backdropFilter: "blur(16px)", borderBottom: "1px solid #1c2a40", padding: "0 clamp(16px,4vw,48px)" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 32, height: 32, background: "linear-gradient(135deg,#00d4ff,#7c3aed)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>⚡</div>
-            <span style={{ fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 900, color: "#e8f0fe" }}>TechPulse<span style={{ color: "#00d4ff" }}>Reviews</span></span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
-              style={{ background: "#0e1520", border: "1px solid #1c2a40", borderRadius: 8, padding: "7px 12px", color: "#e8f0fe", fontSize: 13, width: "clamp(80px,18vw,180px)", outline: "none", fontFamily: "inherit" }} />
-            <button onClick={() => setShowKeywords(true)} style={{ background: "rgba(0,229,160,0.1)", color: "#00e5a0", border: "1px solid rgba(0,229,160,0.2)", borderRadius: 8, padding: "8px 14px", cursor: "pointer", fontWeight: 700, fontSize: 12, fontFamily: "inherit", whiteSpace: "nowrap" }}>📈 Keywords</button>
-            <button onClick={() => setShowLogin(true)} style={{ background: "linear-gradient(135deg,#00d4ff,#7c3aed)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer", fontWeight: 700, fontSize: 12, fontFamily: "inherit", whiteSpace: "nowrap" }}>🤖 Agent</button>
-          </div>
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <div style={{ padding: "64px clamp(16px,4vw,48px) 48px", textAlign: "center", position: "relative", zIndex: 1 }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 99, padding: "5px 16px", marginBottom: 20 }}>
-          <div style={{ width: 7, height: 7, background: "#00d4ff", borderRadius: "50%", animation: "blink 2s infinite" }}></div>
-          <span style={{ color: "#00d4ff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>AI-Powered · Real Product Images · 10 Niches</span>
-        </div>
-        <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(28px,5vw,56px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: -1, margin: "0 0 14px", color: "#e8f0fe" }}>
-          Expert Reviews for<br />
-          <span style={{ background: "linear-gradient(90deg,#00d4ff,#7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Every Category</span>
-        </h1>
-        <p style={{ color: "#4a6080", fontSize: "clamp(13px,2vw,16px)", maxWidth: 480, margin: "0 auto 28px", lineHeight: 1.6, fontWeight: 300 }}>
-          Honest, AI-maintained reviews across tech, gaming, health, fitness, home and more — with real Amazon product images.
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap" }}>
-          {[{ val: reviews.length, label: "Reviews" }, { val: "10", label: "Niches" }, { val: "Real", label: "Product Images" }].map(s => (
-            <div key={s.label} style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 900, color: "#00d4ff" }}>{s.val}</div>
-              <div style={{ fontSize: 10, color: "#4a6080", textTransform: "uppercase", letterSpacing: 1, marginTop: 2 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* NICHE FILTER */}
-      <div style={{ padding: "0 clamp(16px,4vw,48px) 20px" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          <button onClick={() => setNiche("All")} style={{ background: niche === "All" ? "#00d4ff" : "#0e1520", color: niche === "All" ? "#000" : "#4a6080", border: `1px solid ${niche === "All" ? "#00d4ff" : "#1c2a40"}`, borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 12, fontWeight: niche === "All" ? 700 : 400, fontFamily: "inherit" }}>All</button>
-          {NICHES.map(n => (
-            <button key={n.id} onClick={() => setNiche(n.id)} style={{ background: niche === n.id ? n.color + "22" : "#0e1520", color: niche === n.id ? n.color : "#4a6080", border: `1px solid ${niche === n.id ? n.color : "#1c2a40"}`, borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontSize: 12, fontWeight: niche === n.id ? 700 : 400, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}>
-              <span>{n.icon}</span><span style={{ display: "none" }}>{n.label}</span>
-            </button>
-          ))}
-          <span style={{ marginLeft: "auto", color: "#4a6080", fontSize: 12 }}>{filtered.length} reviews</span>
-        </div>
-      </div>
-
-      {/* GRID */}
-      <div style={{ padding: "0 clamp(16px,4vw,48px) 60px" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          {filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 60, color: "#4a6080" }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>🤖</div>
-              <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 16, color: "#e8f0fe", marginBottom: 6 }}>No reviews in this category yet</div>
-              <div style={{ fontSize: 13 }}>Use the AI Agent to generate one</div>
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 20 }}>
-              {filtered.map((r, i) => <ReviewCard key={r.id} review={r} onClick={setSelectedReview} index={i} />)}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <footer style={{ borderTop: "1px solid #1c2a40", padding: "24px clamp(16px,4vw,48px)", textAlign: "center" }}>
-        <p style={{ color: "#1c2a40", fontSize: 11, lineHeight: 1.8 }}>
-          © 2025 TechPulse Reviews · tech-pulse-reviews.com · Amazon tag: {AFFILIATE_TAG}<br />
-          Affiliate Disclosure: We earn commissions from qualifying Amazon purchases at no extra cost to you.
-        </p>
-      </footer>
-
-      {selectedReview && <ReviewModal review={selectedReview} onClose={() => setSelectedReview(null)} />}
-      {showLogin && <LoginGate onSuccess={() => { setShowLogin(false); setShowAgent(true); }} onClose={() => setShowLogin(false)} />}
-      {showAgent && <AgentPanel reviews={reviews} setReviews={setReviews} onClose={() => setShowAgent(false)} onKeywords={() => setShowKeywords(true)} />}
-      {showKeywords && <KeywordPanel onClose={() => setShowKeywords(false)} />}
-    </div>
-  );
+async function handleSync(){
+  addLog('Antigravity sync started','info');
+  try{
+    const keys=await window.storage.list(STORAGE_KEY+':',true);
+    let added=0;
+    for(const key of(keys?.keys||[])){
+      try{const r=await window.storage.get(key,true);if(r?.value){const rev=JSON.parse(r.value);if(!reviews.find(x=>String(x.id)===String(rev.id))){reviews.unshift(rev);added++;}}}catch{}
+    }
+    addLog(`Sync complete — ${added} new review${added!==1?'s':''} imported`,added>0?'success':'info');
+    renderGrid();if(agentTab==='dashboard')renderAgentBody();
+  }catch(e){addLog('Sync failed: '+e.message,'error');}
 }
+
+renderGrid();
+</script>
+</body>
+  </html>
